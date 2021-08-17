@@ -1,16 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+const cors = require('cors');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors());
 const port = 3000
 var db = require('./db');
 var Task = db.Mongoose.model('tasks', db.taskSchema, 'tasks');
-
-/* GET home */
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
 
 /* POST one task */
 app.post('/task', function(req, res, next){
@@ -26,18 +23,27 @@ app.post('/task', function(req, res, next){
   })
 })
 
-app.post('/task', function(req, res, next){
-  Task.create(req.body, (error) => {
-    if(error) {
-      res.status(500).json({ error: error.message });
+/* Patch */
+app.patch('/task/:id', function (req, res, next) {
+  Task.findOneAndUpdate({ _id: req.params.id }, [{
+    $set: {
+      status: {
+        $eq: [ "$status", false ]
+        }
+        }
+      }
+    ], {
+          upsert: true
+         }, function (err, doc) {
+      if (err) {
+          res.status(500).json({ error: err.message });
+          res.end();
+          return;
+      }
+      res.json(doc);
       res.end();
-      return;
-    }
-    res.json(req.body);
-    res.end();
-    return;
-  })
-})
+  });
+});
 
 /* GET all tasks. */
 app.get('/task/:page/:pageLimit/:sort', function(req, res, next) {
