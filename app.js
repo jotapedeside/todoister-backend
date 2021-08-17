@@ -87,6 +87,19 @@ app.get('/done/:page/:pageLimit/:sort', function(req, res, next) {
     });  
 });
 
+/* DELETE one task. */
+app.delete('/task/:id', function (req, res, next) {
+  Task.find({ _id: req.params.id }).remove(function (err) {
+      if (err) {
+          res.status(500).json({ error: err.message });
+          res.end();
+          return;
+      }
+      res.json({success: true});
+      res.end();
+  });
+});
+
 app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`)
 })
